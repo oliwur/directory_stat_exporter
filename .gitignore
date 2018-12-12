@@ -1,22 +1,25 @@
+# golang
 *.exe
 *.test
 
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
-.idea/**/contentModel.xml
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
-.idea/*.iml
-.idea/encodings.xml
-.idea/misc.xml
-.idea/modules.xml
+# intellij goland
 *.iml
 *.ipr
+.idea/*.iml
+.idea/**/contentModel.xml
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/dataSources/
+.idea/**/dbnavigator.xml
+.idea/**/dictionaries
+.idea/**/dynamic.xml
+.idea/**/encodings.xml
+.idea/**/shelf
+.idea/**/sqlDataSources.xml
+.idea/**/tasks.xml
+.idea/**/uiDesigner.xml
+.idea/**/usage.statistics.xml
+.idea/**/misc.xml
+.idea/**/modules.xml
+.idea/**/vcs.xml
+.idea/**/workspace.xml
