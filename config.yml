@@ -1,0 +1,7 @@
+directories:
+  - path: \
+    recursive: false
+  - path: \users\wuo
+    recursive: false
+  - path: \users\me
+    recursive: false
