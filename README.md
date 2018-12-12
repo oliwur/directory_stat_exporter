@@ -1,5 +1,7 @@
-# get simple directory statistics (metrics) for prometheus
+# directory statistics for prometheus
+get simple directory statistics (metrics) for prometheus
 
+## features
 - all done without prometheus libraries
   - don't know if this is a good decesion or a bad one.
 - super simple, the only things provided so far:
@@ -8,6 +10,18 @@
 
 the purpose of this exporter is to generate an alert within prometheus / grafana if there are files waiting longer than a certain time.
 
-exports:
+## exports
 - `dirstat_files_count`: number of files in directory
 - `dirstat_oldest_file_age`: age of oldest file in seconds
+
+## todos
+- make sure only files are counted
+- implement recursive file walking
+- make information gathering concurrent, so more directories can be handled in the same time
+- better logging
+- better error handling
+- test handling of unc paths in windows (yes, it's targeted for windows.)
+
+## problems
+- large directories might not be handled well
+  - might use lot of memory, because whole directory is read once
