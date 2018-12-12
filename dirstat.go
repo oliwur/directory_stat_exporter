@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/codestoke/directory_stat_exporter/cfg"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -9,7 +10,12 @@ import (
 	"time"
 )
 
+// globals
+var config cfg.Config
+
 func main() {
+	config = cfg.GetConfig()
+
 	http.HandleFunc("/metrics", handleMetrics)
 	if err := http.ListenAndServe(":9999", nil); err != nil {
 		panic(err)
@@ -17,9 +23,10 @@ func main() {
 }
 
 func handleMetrics(w http.ResponseWriter, r *http.Request) {
-	dir := "\\"
-	w.Write([]byte(getDirMetric("dirstat", "files_count", dir, int64(getFileCountInDir(dir)))))
-	w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir, int64(getOldestAgeInDir(dir)))))
+	for _, dir := range config.Directories {
+		w.Write([]byte(getDirMetric("dirstat", "files_count", dir.Path, int64(getFileCountInDir(dir.Path)))))
+		w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir.Path, int64(getOldestAgeInDir(dir.Path)))))
+	}
 }
 
 func getModTime(file string) int64 {
