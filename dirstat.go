@@ -14,11 +14,47 @@ import (
 // globals
 var config cfg.Config
 
+const (
+	namespace            = "dirstat"
+	metricFilesInDir     = "files_in_dir"
+	metricOldestFileTime = "oldest_file_time"
+)
+
+type metricValue struct {
+	dir       string
+	name      string
+	value     int64
+	recursive bool
+}
+type metric struct {
+	metricName   string
+	metricHelp   string
+	metricType   string
+	metricValues map[string]metricValue
+}
+
+var metricRegister map[string]metric
+
 func main() {
 	config = cfg.GetConfig()
 
+	metricRegister = make(map[string]metric)
+
+	metricRegister[metricFilesInDir] = metric{
+		metricName:   metricFilesInDir,
+		metricType:   "gauge",
+		metricHelp:   "this counts all the files in a directory",
+		metricValues: make(map[string]metricValue),
+	}
+	metricRegister[metricOldestFileTime] = metric{
+		metricName:   metricOldestFileTime,
+		metricType:   "gauge",
+		metricHelp:   "displays the timestamp in unix time of the oldes file",
+		metricValues: make(map[string]metricValue),
+	}
+
 	http.HandleFunc("/metrics", handleMetrics)
-	if err := http.ListenAndServe(":9999", nil); err != nil {
+	if err := http.ListenAndServe(":"+config.ServicePort, nil); err != nil {
 		panic(err)
 	}
 }
@@ -26,13 +62,31 @@ func main() {
 func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	for _, dir := range config.Directories {
 		if dir.Recursive {
-			w.Write([]byte(getDirMetric("dirstat", "files_count", dir.Path, int64(getFileCountInDirRecursively(dir.Path)))))
-			w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir.Path, int64(getOldestAgeInDirRecursively(dir.Path)))))
+			metricRegister[metricFilesInDir].metricValues[dir.Path] = metricValue{
+				value:     int64(getFileCountInDirRecursively(dir.Path)),
+				recursive: dir.Recursive,
+				name:      dir.Name,
+			}
+			metricRegister[metricOldestFileTime].metricValues[dir.Path] = metricValue{
+				value:     int64(getOldestAgeInDirRecursively(dir.Path)),
+				recursive: dir.Recursive,
+				name:      dir.Name,
+			}
 		} else {
-			w.Write([]byte(getDirMetric("dirstat", "files_count", dir.Path, int64(getFileCountInDir(dir.Path)))))
-			w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir.Path, int64(getOldestAgeInDir(dir.Path)))))
+			metricRegister[metricFilesInDir].metricValues[dir.Path] = metricValue{
+				value:     int64(getFileCountInDir(dir.Path)),
+				recursive: dir.Recursive,
+				name:      dir.Name,
+			}
+			metricRegister[metricOldestFileTime].metricValues[dir.Path] = metricValue{
+				value:     int64(getOldestAgeInDir(dir.Path)),
+				recursive: dir.Recursive,
+				name:      dir.Name,
+			}
 		}
-
+	}
+	for _, value := range metricRegister {
+		_, _ = w.Write([]byte(sprintDirMetric(value)))
 	}
 }
 
@@ -46,35 +100,34 @@ func getModTime(file string) int64 {
 }
 
 func getOldestAgeInDirRecursively(dir string) int64 {
-	var maxAge int64 = 0
+	var oldestTs int64 = time.Now().Unix()
 	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			log.Printf("an error occurred! %v\n", err)
 		}
 		if !info.IsDir() {
-			age := time.Now().Unix() - getModTime(path)
-			if age > maxAge {
-				maxAge = age
+			ts := getModTime(path)
+			if ts > oldestTs {
+				oldestTs = ts
 			}
 		}
 		return nil
 	})
-	return maxAge
+	return oldestTs
 }
 
 func getOldestAgeInDir(dir string) int64 {
 	var files, _ = ioutil.ReadDir(dir)
-	var maxAge int64 = 0
+	var oldestTs int64 = time.Now().Unix()
 	for _, file := range files {
-		//fmt.Println(file)
 		if !file.IsDir() {
-			age := time.Now().Unix() - getModTime(dir+string(os.PathSeparator)+file.Name())
-			if age > maxAge {
-				maxAge = age
+			ts := getModTime(dir + string(os.PathSeparator) + file.Name())
+			if ts < oldestTs {
+				oldestTs = ts
 			}
 		}
 	}
-	return maxAge
+	return oldestTs
 }
 
 func getFileCountInDirRecursively(dir string) int {
@@ -93,12 +146,21 @@ func getFileCountInDirRecursively(dir string) int {
 
 func getFileCountInDir(dir string) int {
 	files, _ := ioutil.ReadDir(dir)
-	return len(files)
+	count := 0
+	for _, f := range files {
+		if !f.IsDir() {
+			count++
+		}
+	}
+	return count
 }
 
-func getDirMetric(namespace string, metricName string, dir string, value int64) string {
-	str := fmt.Sprintf("# HELP %s_%s\n", namespace, metricName)
-	str += fmt.Sprintf("# TYPE %s_%s counter\n", namespace, metricName)
-	str += fmt.Sprintf("%s_%s{dir=\"%s\"} %d\n", namespace, metricName, dir, value)
+func sprintDirMetric(m metric) string {
+	str := ""
+	str += fmt.Sprintf("# HELP %s_%s %s\n", namespace, m.metricName, m.metricHelp)
+	str += fmt.Sprintf("# TYPE %s_%s %s\n", namespace, m.metricName, m.metricType)
+	for _, v := range m.metricValues {
+		str += fmt.Sprintf("%s_%s{dir=\"%s\",recursive=\"%t\"} %v\n", namespace, m.metricName, v.name, v.recursive, v.value)
+	}
 	return str
 }
