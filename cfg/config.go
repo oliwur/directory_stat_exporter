@@ -7,10 +7,12 @@ import (
 )
 
 type Dir struct {
+	Name      string
 	Path      string
 	Recursive bool
 }
 type Config struct {
+	ServicePort string
 	Directories []Dir
 }
 
