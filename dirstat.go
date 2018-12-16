@@ -98,7 +98,7 @@ func getFileCountInDir(dir string) int {
 
 func getDirMetric(namespace string, metricName string, dir string, value int64) string {
 	str := fmt.Sprintf("# HELP %s_%s\n", namespace, metricName)
-	str += fmt.Sprintf("# TYPE %s_%s\n", namespace, metricName)
+	str += fmt.Sprintf("# TYPE %s_%s counter\n", namespace, metricName)
 	str += fmt.Sprintf("%s_%s{dir=\"%s\"} %d\n", namespace, metricName, dir, value)
 	return str
 }
