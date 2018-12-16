@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -24,8 +25,14 @@ func main() {
 
 func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	for _, dir := range config.Directories {
-		w.Write([]byte(getDirMetric("dirstat", "files_count", dir.Path, int64(getFileCountInDir(dir.Path)))))
-		w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir.Path, int64(getOldestAgeInDir(dir.Path)))))
+		if dir.Recursive {
+			w.Write([]byte(getDirMetric("dirstat", "files_count", dir.Path, int64(getFileCountInDirRecursively(dir.Path)))))
+			w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir.Path, int64(getOldestAgeInDirRecursively(dir.Path)))))
+		} else {
+			w.Write([]byte(getDirMetric("dirstat", "files_count", dir.Path, int64(getFileCountInDir(dir.Path)))))
+			w.Write([]byte(getDirMetric("dirstat", "oldest_file_age", dir.Path, int64(getOldestAgeInDir(dir.Path)))))
+		}
+
 	}
 }
 
@@ -36,6 +43,23 @@ func getModTime(file string) int64 {
 		return 0
 	}
 	return info.ModTime().Unix()
+}
+
+func getOldestAgeInDirRecursively(dir string) int64 {
+	var maxAge int64 = 0
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Printf("an error occurred! %v\n", err)
+		}
+		if !info.IsDir() {
+			age := time.Now().Unix() - getModTime(path)
+			if age > maxAge {
+				maxAge = age
+			}
+		}
+		return nil
+	})
+	return maxAge
 }
 
 func getOldestAgeInDir(dir string) int64 {
@@ -51,6 +75,20 @@ func getOldestAgeInDir(dir string) int64 {
 		}
 	}
 	return maxAge
+}
+
+func getFileCountInDirRecursively(dir string) int {
+	count := 0
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Printf("an erro occurred: %v\n", err)
+		}
+		if !info.IsDir() {
+			count++
+		}
+		return nil
+	})
+	return count
 }
 
 func getFileCountInDir(dir string) int {
