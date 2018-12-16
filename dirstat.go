@@ -43,9 +43,11 @@ func getOldestAgeInDir(dir string) int64 {
 	var maxAge int64 = 0
 	for _, file := range files {
 		//fmt.Println(file)
-		age := time.Now().Unix() - getModTime(dir + string(os.PathSeparator) + file.Name())
-		if age > maxAge {
-			maxAge = age
+		if !file.IsDir() {
+			age := time.Now().Unix() - getModTime(dir+string(os.PathSeparator)+file.Name())
+			if age > maxAge {
+				maxAge = age
+			}
 		}
 	}
 	return maxAge
