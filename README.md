@@ -15,7 +15,7 @@ the purpose of this exporter is to generate an alert within prometheus / grafana
 - `dirstat_oldest_file_age`: age of oldest file in seconds
 
 ## todos
-- make sure only files are counted
+- make sure only files are counted (done)
 - implement recursive file walking
 - make information gathering concurrent, so more directories can be handled in the same time
 - better logging
