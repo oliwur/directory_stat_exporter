@@ -1,14 +1,5 @@
 serviceport: "9999"
 directories:
-  - path: c:\
-    name: c:\\
-    recursive: false
-  - path: \\localhost\c$\tmp
-    name: \\localhost\c$\tmp
-    recursive: true
-  - path: \users\wuo
-    name: \users\wuo
-    recursive: true
   - path: \tmp
     name: \tmp
     recursive: true

@@ -15,9 +15,10 @@ import (
 var config cfg.Config
 
 const (
-	namespace            = "dirstat"
-	metricFilesInDir     = "files_in_dir"
-	metricOldestFileTime = "oldest_file_time"
+	namespace              = "dirstat"
+	metricFilesInDir       = "files_in_dir"
+	metricOldestFileTime   = "oldest_file_time"
+	metricCurrentTimestamp = "current_timestamp"
 )
 
 type metricValue struct {
@@ -34,6 +35,7 @@ type metric struct {
 }
 
 var metricRegister map[string]metric
+var currentTimestamp metric
 
 func main() {
 	config = cfg.GetConfig()
@@ -85,6 +87,15 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	currentTimestamp = metric{
+		metricName: metricCurrentTimestamp,
+		metricHelp: "the current timestamp in unix time.",
+		metricType: "gauge",
+		metricValues: map[string]metricValue{"ts": {value: time.Now().Unix()}},
+	}
+	_, _ = w.Write([]byte(sprintCurrentTimestamp(currentTimestamp)))
+
 	for _, value := range metricRegister {
 		_, _ = w.Write([]byte(sprintDirMetric(value)))
 	}
@@ -107,7 +118,7 @@ func getOldestAgeInDirRecursively(dir string) int64 {
 		}
 		if !info.IsDir() {
 			ts := getModTime(path)
-			if ts > oldestTs {
+			if ts < oldestTs {
 				oldestTs = ts
 			}
 		}
@@ -153,6 +164,17 @@ func getFileCountInDir(dir string) int {
 		}
 	}
 	return count
+}
+
+// this should be replaced with one more generic generator.
+func sprintCurrentTimestamp(m metric) string {
+	str := ""
+	str += fmt.Sprintf("# HELP %s_%s %s\n", namespace, m.metricName, m.metricHelp)
+	str += fmt.Sprintf("# TYPE %s_%s %s\n", namespace, m.metricName, m.metricType)
+	for _, v := range m.metricValues {
+		str += fmt.Sprintf("%s_%s %v\n", namespace, m.metricName, v.value)
+	}
+	return str
 }
 
 func sprintDirMetric(m metric) string {
