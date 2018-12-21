@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func setup() string {
+func setupTmpDir() string {
 	tmpDir, err := ioutil.TempDir("", "dirstat_test_")
 	if err != nil {
 		log.Fatal("could not create temp dir", err)
@@ -16,7 +16,7 @@ func setup() string {
 }
 
 func TestGetFileCountZero(t *testing.T) {
-	tmpDir := setup()
+	tmpDir := setupTmpDir()
 	defer os.RemoveAll(tmpDir)
 
 	t.Run("given a empty directory when counted not recursively then it should return 0", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGetFileCountZero(t *testing.T) {
 }
 
 func TestGetFileCountThree(t *testing.T) {
-	tmpDir := setup()
+	tmpDir := setupTmpDir()
 	defer os.RemoveAll(tmpDir)
 
 	file1, _ := ioutil.TempFile(tmpDir, "file1")
@@ -69,7 +69,7 @@ func TestGetFileCountThree(t *testing.T) {
 }
 
 func TestGetFileCountNotExisting(t *testing.T) {
-	tmpDir := setup()
+	tmpDir := setupTmpDir()
 	defer os.RemoveAll(tmpDir)
 
 	t.Run("given the directory does not exist when counted non recursively then it should return -1 indicating an error", func(t *testing.T) {
