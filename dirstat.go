@@ -121,9 +121,6 @@ func getOldestFileModTimestamp(dir string, recursive bool) int64 {
 func getOldestAgeInDirRecursively(dir string) int64 {
 	var oldestTs int64 = time.Now().Unix()
 	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Printf("an error occurred! %v\n", err)
-		}
 		if !info.IsDir() {
 			ts := getModTime(path)
 			if ts < oldestTs {
