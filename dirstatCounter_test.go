@@ -51,13 +51,9 @@ func TestGetFileCountThree(t *testing.T) {
 		}
 	}()
 
-	file1, _ := ioutil.TempFile(tmpDir, "file1")
-	file2, _ := ioutil.TempFile(tmpDir, "file2")
-	file3, _ := ioutil.TempFile(tmpDir, "file3")
-
-	defer os.Remove(file1.Name())
-	defer os.Remove(file2.Name())
-	defer os.Remove(file3.Name())
+	_, _ = ioutil.TempFile(tmpDir, "file1")
+	_, _ = ioutil.TempFile(tmpDir, "file2")
+	_, _ = ioutil.TempFile(tmpDir, "file3")
 
 	t.Run("given a directory with 3 files when counted not recursively then it should return 3", func(t *testing.T) {
 		count := getFileCount(tmpDir, false)
