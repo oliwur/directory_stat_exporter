@@ -89,9 +89,9 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	currentTimestamp = metric{
-		metricName: metricCurrentTimestamp,
-		metricHelp: "the current timestamp in unix time.",
-		metricType: "gauge",
+		metricName:   metricCurrentTimestamp,
+		metricHelp:   "the current timestamp in unix time.",
+		metricType:   "gauge",
 		metricValues: map[string]metricValue{"ts": {value: time.Now().Unix()}},
 	}
 	_, _ = w.Write([]byte(sprintCurrentTimestamp(currentTimestamp)))
@@ -141,12 +141,20 @@ func getOldestAgeInDir(dir string) int64 {
 	return oldestTs
 }
 
+func getFileCount(dir string, recursive bool) int {
+	if recursive {
+		return getFileCountInDirRecursively(dir)
+	} else {
+		return getFileCountInDir(dir)
+	}
+}
+
 func getFileCountInDirRecursively(dir string) int {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return -1
+	}
 	count := 0
 	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Printf("an erro occurred: %v\n", err)
-		}
 		if !info.IsDir() {
 			count++
 		}
@@ -156,7 +164,10 @@ func getFileCountInDirRecursively(dir string) int {
 }
 
 func getFileCountInDir(dir string) int {
-	files, _ := ioutil.ReadDir(dir)
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return -1
+	}
 	count := 0
 	for _, f := range files {
 		if !f.IsDir() {
