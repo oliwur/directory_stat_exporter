@@ -17,7 +17,12 @@ func setupTmpDir() string {
 
 func TestGetFileCountZero(t *testing.T) {
 	tmpDir := setupTmpDir()
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			log.Printf("could not remove tmpDir")
+		}
+	}()
 
 	t.Run("given a empty directory when counted not recursively then it should return 0", func(t *testing.T) {
 		count := getFileCount(tmpDir, false)
@@ -39,7 +44,12 @@ func TestGetFileCountZero(t *testing.T) {
 
 func TestGetFileCountThree(t *testing.T) {
 	tmpDir := setupTmpDir()
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			log.Printf("could not remove tmpDir")
+		}
+	}()
 
 	file1, _ := ioutil.TempFile(tmpDir, "file1")
 	file2, _ := ioutil.TempFile(tmpDir, "file2")
@@ -70,7 +80,12 @@ func TestGetFileCountThree(t *testing.T) {
 
 func TestGetFileCountNotExisting(t *testing.T) {
 	tmpDir := setupTmpDir()
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			log.Printf("could not remove tmpDir")
+		}
+	}()
 
 	t.Run("given the directory does not exist when counted non recursively then it should return -1 indicating an error", func(t *testing.T) {
 		count := getFileCount(tmpDir+"_this_dir_does_not_exist", false)

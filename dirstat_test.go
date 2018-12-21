@@ -22,7 +22,12 @@ func setupTestFileWithTimestamp(dir string, file string, ts time.Time) *os.File 
 
 func TestOldestFileInDir(t *testing.T) {
 	tmpDir := setupTmpDir()
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			log.Printf("could not remove tmpDir")
+		}
+	}()
 
 	setupTestFileWithTimestamp(tmpDir, "test", time.Now().Add(time.Second*time.Duration(-20)))
 
