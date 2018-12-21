@@ -21,15 +21,52 @@ the purpose of this exporter is to provide metrics so prometheus can generate an
 - make sure only files are counted (done)
 - implement recursive file walking (done)
 - test handling of unc paths in windows (yes, it's targeted for windows.)
-- better logging
+- better logging (really? do I need logging here?)
 - better error handling
+  - it should be fault tolerant and rather give useful metrics if an error occurs
 - make information gathering concurrent, so more directories can be handled in the same time
+- make config passable as a parameter
 
-## notes
+## notes to self
 - *important* stack items correctly (types and help text must only appear once in a metric export / per request)
-- note to self: labels must not contain a single backslash... I replaced all backslashes now with forward slashes. -> there must be a better solution
+- labels must not contain a single backslash... I replaced all backslashes now with forward slashes. -> there must be a better solution
   - e.g. add labels to the configuration and give them meaningful names.
 
 ## problems
 - large directories might not be handled well
   - might use lot of memory, because whole directory is read once (untested)
+
+## configuration
+### service port
+`serviceport: "9999"`
+this does not really need more explanation
+
+### directories
+```
+directories:
+     - path: \tmp
+       name: "tmp_dir"
+       recursive: true
+```
+|key|value|
+|---|-----|
+|path|a path to the directory to be monitored. this can be a relative or an absolute path. for windows it can also be a UNC path.|
+|name|a useful name. must be unique. not sure if special characters and spaces are a good idea. I have to check that.|
+|recursive|should subdirectories also be analysed. can be `true` or `false`|
+
+## usage
+in your GOPATH type
+
+`go get github.com/codestoke/directory_stat_exporter`
+
+you'll find the binary in the `bin` directory of your GOPATH. the `config.yml` must be in the same directory of the executable (there are no other options yet)
+
+currently, this generates the version in the master branch. this might not be very useful and can be buggy.
+
+you can always download the source from a release, unpack it in your GOPATH and then compile it with
+
+`go build`
+
+have fun!
+
+cheers, Oli
