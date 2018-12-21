@@ -13,6 +13,7 @@ the purpose of this exporter is to generate an alert within prometheus / grafana
 ## exports
 - `dirstat_files_in_dir`: number of files in directory
 - `dirstat_oldest_file_time`: timestamp (unix time) of oldest file in dir
+- `dirstat_current_timestamp`: the current timestamp. because it's not provieded by prometheus (or I was not able to find it.)
 
 ## todos
 - make sure only files are counted (done)
