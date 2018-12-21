@@ -1,14 +1,16 @@
 # directory statistics for prometheus
-get simple directory statistics (metrics) for prometheus
+get simple directory statistics (metrics) for prometheus. if you want to know if a batch job did not process all the files in a directory or a certain folder contains files with error information, this is the right place. the directory_stat_exporter provides minimal metrics to see how many documents are in a folder and the timestamp (unix time in seconds) of the oldest one. with this information, you can decide, depending on the specs of an interface, if everything is ok or not. the analysis of a directory can be generated from only the directory itself, without the subdirectories, or also including all the subdirectories. depending on your needs.
+
+the purpose of this exporter is to provide metrics so prometheus can generate an alert if there are files waiting longer than a certain time.
 
 ## features
 - all done without prometheus libraries
   - don't know if this is a good decesion or a bad one.
+  - that's not really a feature, is it. oh, well, it's a fun project anyway.
 - super simple, the only things provided so far:
-  - file item (directory or file) of directory, without subdirectories
-  - age of oldest file in directoy
-
-the purpose of this exporter is to generate an alert within prometheus / grafana if there are files waiting longer than a certain time.
+  - number of files in directory, with or without subdirectories
+  - last modified timestamp of oldest file in directoy, with or without subdirs.
+  - for calculation reasons the current timestamp
 
 ## exports
 - `dirstat_files_in_dir`: number of files in directory
