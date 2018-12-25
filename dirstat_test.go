@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"testing"
 	"time"
 )
@@ -44,6 +45,27 @@ func TestOldestFileInDir(t *testing.T) {
 		if age != 20 {
 			t.Fail()
 			t.Errorf("the file age is not 20, it's %v\n", age)
+		}
+	})
+}
+
+func TestModTimeIfFileDoesNotExist(t *testing.T) {
+	tmpDir := setupTmpDir()
+	defer func() {
+		err := os.RemoveAll(tmpDir)
+		if err != nil {
+			log.Printf("could not remove tmpDir")
+		}
+	}()
+
+	// short explain why: it it would return -1, then -1 will always be the oldest file in a dir. it should not change the oldest file
+	// todo: make better / more clear test for this.
+	t.Run("given a dir with no file in it when analysed non recursively then return current timestamp", func(t *testing.T) {
+		age := getModTime(path.Join(tmpDir, "a-file-that-does-not.exist"))
+		current := time.Now().Unix()
+		if age < (current-5) || age > (current+1) {
+			t.Fail()
+			t.Errorf("the result should be %v, it was %v\n", current, age)
 		}
 	})
 }

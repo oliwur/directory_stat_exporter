@@ -18,8 +18,6 @@ the purpose of this exporter is to provide metrics so prometheus can generate an
 - `dirstat_current_timestamp`: the current timestamp. because it's not provieded by prometheus (or I was not able to find it.)
 
 ## todos
-- make sure only files are counted (done)
-- implement recursive file walking (done)
 - test handling of unc paths in windows (yes, it's targeted for windows.)
 - better logging (really? do I need logging here?)
 - better error handling

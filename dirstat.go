@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/codestoke/directory_stat_exporter/cfg"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -104,8 +103,7 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 func getModTime(file string) int64 {
 	info, err := os.Stat(file)
 	if err != nil {
-		log.Print(err)
-		return 0
+		return time.Now().Unix()
 	}
 	return info.ModTime().Unix()
 }
