@@ -24,6 +24,12 @@ the purpose of this exporter is to provide metrics so prometheus can generate an
   - it should be fault tolerant and rather give useful metrics if an error occurs
 - make information gathering concurrent, so more directories can be handled in the same time
 - make config passable as a parameter
+- add the disk usage of the current directory as a metric
+  - think of usefulness first. do we really need this? -> so far: no.
+- add performance measurements:
+  - how fast is the gathering
+  - where are the limits on local drives
+  - what are the limits on remote directories 
 
 ## notes to self
 - *important* stack items correctly (types and help text must only appear once in a metric export / per request)

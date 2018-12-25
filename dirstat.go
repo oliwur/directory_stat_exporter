@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codestoke/directory_stat_exporter/cfg"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -115,5 +116,20 @@ func sprintDirMetric(m metric) string {
 	for _, v := range m.metricValues {
 		str += fmt.Sprintf("%s_%s{dir=\"%s\",recursive=\"%t\"} %v\n", namespace, m.metricName, v.name, v.recursive, v.value)
 	}
+	return str
+}
+
+func sprintMetric(ns string, name string, value int64, labels map[string]string) string {
+	strLbls := ""
+	if labels != nil {
+		lblArr := make([]string, 0)
+		strLbls += "{"
+		for k, v := range labels {
+			lblArr = append(lblArr, fmt.Sprintf("%s=\"%s\"", k, v))
+		}
+		strLbls += strings.Join(lblArr, ",")
+		strLbls += "}"
+	}
+	str := fmt.Sprintf("%s_%s%s %v", ns, name, strLbls, value)
 	return str
 }
