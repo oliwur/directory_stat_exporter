@@ -10,6 +10,20 @@ import (
 )
 
 func TestMetricsWriter(t *testing.T) {
+	t.Run("each metric must end with a line feed (\\n)", func(t *testing.T) {
+		namespace := "namespace"
+		name := "name"
+		value := 1
+
+		txt := sprintMetric(namespace, name, int64(value), nil)
+
+		//expected := fmt.Sprintf("%v_%v %v\n", namespace, name, value)
+		if !strings.HasSuffix(txt, "\n") {
+			t.Fail()
+			t.Errorf("the generated code must end in a line feed (\\n)")
+		}
+	})
+
 	t.Run("should write single metric without label", func(t *testing.T) {
 		namespace := "dirstat"
 		name := "name"
@@ -17,7 +31,7 @@ func TestMetricsWriter(t *testing.T) {
 
 		txt := sprintMetric(namespace, name, int64(value), nil)
 
-		expected := fmt.Sprintf("%v_%v %v", namespace, name, value)
+		expected := fmt.Sprintf("%v_%v %v\n", namespace, name, value)
 		if txt != expected {
 			t.Fail()
 			t.Errorf("the expected text was not retured:\nexpected: %v\nreturned: %v\n", expected, txt)
@@ -37,7 +51,7 @@ func TestMetricsWriter(t *testing.T) {
 
 		txt := sprintMetric(namespace, name, int64(value), lbls)
 
-		expected := fmt.Sprintf("%s_%s{%s=\"%s\"} %v", namespace, name, lblKey, lblValue, value)
+		expected := fmt.Sprintf("%s_%s{%s=\"%s\"} %v\n", namespace, name, lblKey, lblValue, value)
 		if txt != expected {
 			t.Fail()
 			t.Errorf("the expected text was not retured:\nexpected: %v\nreturned: %v\n", expected, txt)
@@ -67,7 +81,7 @@ func TestMetricsWriter(t *testing.T) {
 
 		txt := sprintMetric(namespace, name, int64(value), lbls)
 
-		expected := fmt.Sprintf("%s_%s%s %v", namespace, name, lblTxt, value)
+		expected := fmt.Sprintf("%s_%s%s %v\n", namespace, name, lblTxt, value)
 		if txt != expected {
 			t.Fail()
 			t.Errorf("the expected text was not retured:\nexpected: %v\nreturned: %v\n", expected, txt)

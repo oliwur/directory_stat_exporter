@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codestoke/directory_stat_exporter/cfg"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -65,22 +66,38 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 				value:     int64(getFileCountInDirRecursively(dir.Path)),
 				recursive: dir.Recursive,
 				name:      dir.Name,
+				labels: map[string]string{
+					"dir":       dir.Name,
+					"recursive": strconv.FormatBool(dir.Recursive),
+				},
 			}
 			metricRegister[metricOldestFileTime].metricValues[dir.Path] = metricValue{
 				value:     int64(getOldestAgeInDirRecursively(dir.Path)),
 				recursive: dir.Recursive,
 				name:      dir.Name,
+				labels: map[string]string{
+					"dir":       dir.Name,
+					"recursive": strconv.FormatBool(dir.Recursive),
+				},
 			}
 		} else {
 			metricRegister[metricFilesInDir].metricValues[dir.Path] = metricValue{
 				value:     int64(getFileCountInDir(dir.Path)),
 				recursive: dir.Recursive,
 				name:      dir.Name,
+				labels: map[string]string{
+					"dir":       dir.Name,
+					"recursive": strconv.FormatBool(dir.Recursive),
+				},
 			}
 			metricRegister[metricOldestFileTime].metricValues[dir.Path] = metricValue{
 				value:     int64(getOldestAgeInDir(dir.Path)),
 				recursive: dir.Recursive,
 				name:      dir.Name,
+				labels: map[string]string{
+					"dir":       dir.Name,
+					"recursive": strconv.FormatBool(dir.Recursive),
+				},
 			}
 		}
 	}
@@ -132,6 +149,6 @@ func sprintMetric(ns string, name string, value int64, labels map[string]string)
 		strLbls += strings.Join(lblArr, ",")
 		strLbls += "}"
 	}
-	str := fmt.Sprintf("%s_%s%s %v", ns, name, strLbls, value)
+	str := fmt.Sprintf("%s_%s%s %v\n", ns, name, strLbls, value)
 	return str
 }
