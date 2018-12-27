@@ -93,41 +93,47 @@ func TestDirMetric(t *testing.T) {
 
 	returned := sprintDirMetric(m)
 
-	if len(returned) == 0 {
-		t.Fail()
-		t.Errorf("the result metric string is empty")
-	}
+	t.Run("given a not empty metric when response is generated then the result must not be empty", func(t *testing.T) {
+		if len(returned) == 0 {
+			t.Fail()
+			t.Errorf("the result metric string is empty")
+		}
+	})
 
-	expectedStart := fmt.Sprintf("# HELP %[1]s_%[2]s\n# TYPE %[1]s_%[2]s type\n%[1]s_%[2]s", namespace, m.metricName)
+	t.Run("given a not empty metric when response is generated then the result must start with expected value", func(t *testing.T) {
+		expectedStart := fmt.Sprintf("# HELP %[1]s_%[2]s\n# TYPE %[1]s_%[2]s type\n%[1]s_%[2]s", namespace, m.metricName)
 
-	if strings.HasPrefix(returned, expectedStart) {
-		t.Fail()
-		t.Errorf("it must be in the correct format.\n\texpected: %s\n\treturned: %s\n", expectedStart, returned)
-	}
+		if strings.HasPrefix(returned, expectedStart) {
+			t.Fail()
+			t.Errorf("it must be in the correct format.\n\texpected: %s\n\treturned: %s\n", expectedStart, returned)
+		}
+	})
 
-	r := regexp.MustCompile("{([^}]+)}")
+	t.Run("given a not empty metric with labels when response is generated then the labels must be in the result string", func(t *testing.T) {
+		r := regexp.MustCompile("{([^}]+)}")
 
-	matches := r.FindAllStringSubmatch(returned, -1) // i only want the first one
+		matches := r.FindAllStringSubmatch(returned, -1) // i only want the first one
 
-	if len(matches) == 0 {
-		t.Fail()
-		t.Errorf("I'd expect some labels.\n%s", returned)
-	} else {
-		// it has labels, now parse and test if they are correct$
-		labels := strings.Split(matches[0][1], ",")
-		for _, label := range labels {
-			fmt.Println("testing", label)
-			keyValue := strings.Split(label, "=")
-			key := keyValue[0]
-			value := strings.Replace(keyValue[1], "\"", "", -1)
+		if len(matches) == 0 {
+			t.Fail()
+			t.Errorf("I'd expect some labels.\n%s", returned)
+		} else {
+			// it has labels, now parse and test if they are correct$
+			labels := strings.Split(matches[0][1], ",")
+			for _, label := range labels {
+				fmt.Println("testing", label)
+				keyValue := strings.Split(label, "=")
+				key := keyValue[0]
+				value := strings.Replace(keyValue[1], "\"", "", -1)
 
-			fmt.Println("key, value", key, value)
+				fmt.Println("key, value", key, value)
 
-			if value != m.metricValues["name"].labels[key] {
-				t.Fail()
-				t.Errorf("the label does not exist or the label does not contain the correct value.\n%s\n", returned)
-				t.Error(m.metricValues["name"].labels)
+				if value != m.metricValues["name"].labels[key] {
+					t.Fail()
+					t.Errorf("the label does not exist or the label does not contain the correct value.\n%s\n", returned)
+					t.Error(m.metricValues["name"].labels)
+				}
 			}
 		}
-	}
+	})
 }

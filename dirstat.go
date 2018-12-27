@@ -91,7 +91,8 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 		metricType:   "gauge",
 		metricValues: map[string]metricValue{"ts": {value: time.Now().Unix()}},
 	}
-	_, _ = w.Write([]byte(sprintCurrentTimestamp(currentTimestamp)))
+	//_, _ = w.Write([]byte(sprintCurrentTimestamp(currentTimestamp)))
+	_, _ = w.Write([]byte(sprintDirMetric(currentTimestamp)))
 
 	for _, value := range metricRegister {
 		_, _ = w.Write([]byte(sprintDirMetric(value)))
@@ -99,15 +100,15 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 // this should be replaced with one more generic generator.
-func sprintCurrentTimestamp(m metric) string {
-	str := ""
-	str += fmt.Sprintf("# HELP %s_%s %s\n", namespace, m.metricName, m.metricHelp)
-	str += fmt.Sprintf("# TYPE %s_%s %s\n", namespace, m.metricName, m.metricType)
-	for _, v := range m.metricValues {
-		str += fmt.Sprintf("%s_%s %v\n", namespace, m.metricName, v.value)
-	}
-	return str
-}
+//func sprintCurrentTimestamp(m metric) string {
+//	str := ""
+//	str += fmt.Sprintf("# HELP %s_%s %s\n", namespace, m.metricName, m.metricHelp)
+//	str += fmt.Sprintf("# TYPE %s_%s %s\n", namespace, m.metricName, m.metricType)
+//	for _, v := range m.metricValues {
+//		str += fmt.Sprintf("%s_%s %v\n", namespace, m.metricName, v.value)
+//	}
+//	return str
+//}
 
 func sprintDirMetric(m metric) string {
 	str := ""
