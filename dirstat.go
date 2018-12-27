@@ -36,7 +36,7 @@ var metricRegister map[string]metric
 var currentTimestamp metric
 
 func main() {
-	config = cfg.GetConfig()
+	config = cfg.GetConfig("")
 
 	metricRegister = make(map[string]metric)
 

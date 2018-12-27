@@ -16,13 +16,24 @@ type Config struct {
 	Directories []Dir
 }
 
-func GetConfig() Config {
+func GetConfig(fileName string) Config {
 	Cfg := Config{}
+	// set default values
+	Cfg.ServicePort = "9999"
+
 	var cfgFile = "config.yml"
-	cfgFileBytes, _ := ioutil.ReadFile(cfgFile)
-	err := yaml.Unmarshal(cfgFileBytes, &Cfg)
+	if fileName != "" {
+		cfgFile = fileName
+	}
+	cfgFileBytes, err := ioutil.ReadFile(cfgFile)
 	if err != nil {
 		log.Print("unable to load config", err)
+	} else {
+		err = yaml.Unmarshal(cfgFileBytes, &Cfg)
+		if err != nil {
+			log.Print("unable to load config", err)
+		}
 	}
+
 	return Cfg
 }
