@@ -19,7 +19,7 @@ const (
 )
 
 type metricValue struct {
-	dir       string
+	labels    map[string]string
 	name      string
 	value     int64
 	recursive bool
@@ -114,7 +114,8 @@ func sprintDirMetric(m metric) string {
 	str += fmt.Sprintf("# HELP %s_%s %s\n", namespace, m.metricName, m.metricHelp)
 	str += fmt.Sprintf("# TYPE %s_%s %s\n", namespace, m.metricName, m.metricType)
 	for _, v := range m.metricValues {
-		str += fmt.Sprintf("%s_%s{dir=\"%s\",recursive=\"%t\"} %v\n", namespace, m.metricName, v.name, v.recursive, v.value)
+		//str += fmt.Sprintf("%s_%s{dir=\"%s\",recursive=\"%t\"} %v\n", namespace, m.metricName, v.name, v.recursive, v.value)
+		str += sprintMetric(namespace, m.metricName, v.value, v.labels)
 	}
 	return str
 }
@@ -122,7 +123,7 @@ func sprintDirMetric(m metric) string {
 func sprintMetric(ns string, name string, value int64, labels map[string]string) string {
 	strLbls := ""
 	if labels != nil {
-		lblArr := make([]string, 0)
+		var lblArr []string
 		strLbls += "{"
 		for k, v := range labels {
 			lblArr = append(lblArr, fmt.Sprintf("%s=\"%s\"", k, v))

@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -47,11 +49,11 @@ func TestMetricsWriter(t *testing.T) {
 		name := "name"
 		value := 1
 
-		lbls := make(map[string]string, 0)
+		lbls := make(map[string]string, 2)
 		lbls["lblKey1"] = "lblValue1"
 		lbls["lblKey2"] = "lblValue2"
 
-		keys := make([]string, 0)
+		var keys []string
 		for k := range lbls {
 			keys = append(keys, k)
 		}
@@ -71,4 +73,61 @@ func TestMetricsWriter(t *testing.T) {
 			t.Errorf("the expected text was not retured:\nexpected: %v\nreturned: %v\n", expected, txt)
 		}
 	})
+}
+
+func TestDirMetric(t *testing.T) {
+	// setup some metrics to test.
+	m := metric{
+		metricName: "name",
+		metricType: "type",
+		metricValues: map[string]metricValue{
+			"name": metricValue{
+				value: 1,
+				labels: map[string]string{
+					"dir":       "dir",
+					"recursive": strconv.FormatBool(false),
+				},
+			},
+		},
+	}
+
+	returned := sprintDirMetric(m)
+
+	if len(returned) == 0 {
+		t.Fail()
+		t.Errorf("the result metric string is empty")
+	}
+
+	expectedStart := fmt.Sprintf("# HELP %[1]s_%[2]s\n# TYPE %[1]s_%[2]s type\n%[1]s_%[2]s", namespace, m.metricName)
+
+	if strings.HasPrefix(returned, expectedStart) {
+		t.Fail()
+		t.Errorf("it must be in the correct format.\n\texpected: %s\n\treturned: %s\n", expectedStart, returned)
+	}
+
+	r := regexp.MustCompile("{([^}]+)}")
+
+	matches := r.FindAllStringSubmatch(returned, -1) // i only want the first one
+
+	if len(matches) == 0 {
+		t.Fail()
+		t.Errorf("I'd expect some labels.\n%s", returned)
+	} else {
+		// it has labels, now parse and test if they are correct$
+		labels := strings.Split(matches[0][1], ",")
+		for _, label := range labels {
+			fmt.Println("testing", label)
+			keyValue := strings.Split(label, "=")
+			key := keyValue[0]
+			value := strings.Replace(keyValue[1], "\"", "", -1)
+
+			fmt.Println("key, value", key, value)
+
+			if value != m.metricValues["name"].labels[key] {
+				t.Fail()
+				t.Errorf("the label does not exist or the label does not contain the correct value.\n%s\n", returned)
+				t.Error(m.metricValues["name"].labels)
+			}
+		}
+	}
 }
