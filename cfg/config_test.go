@@ -59,6 +59,40 @@ func TestGetConfig(t *testing.T) {
 
 		_ = os.Chdir(cwd)
 	})
+
+	t.Run("given config.yml is in executable directory when called then it will return config from yml file with default values", func(t *testing.T) {
+		cwd, _ := os.Getwd()
+		tmpDir, _ := ioutil.TempDir("", "dirstat_config_test")
+		_ = os.Chdir(tmpDir)
+
+		cwd2, _ := os.Getwd()
+		fmt.Println(cwd2)
+
+		configSrc := Config{
+			ServicePort: "9997",
+		}
+
+		out, _ := yaml.Marshal(configSrc)
+
+		_ = ioutil.WriteFile("config.yml", []byte(out), 0644)
+
+		config := GetConfig("")
+
+		if config.ServicePort != "9997" {
+			t.Fail()
+			t.Errorf("the configuration returned must return the service port 9997, defined in config.yml")
+			t.Errorf(" it returned %v instead.", config.ServicePort)
+		}
+
+		if config.CacheTime != 5 {
+			t.Fail()
+			t.Errorf("the configuration returned must containt the default cachetime with value of 5")
+			t.Errorf(" it returned %v instead.", config.CacheTime)
+		}
+
+		_ = os.Chdir(cwd)
+	})
+
 	t.Run("given a custom config.yml not in the current directory when called with its path as argument then it will return config from custom yml file", func(t *testing.T) {
 		cwd, _ := os.Getwd()
 		tmpDir, _ := ioutil.TempDir("", "dirstat_config_test")

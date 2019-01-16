@@ -35,6 +35,7 @@ var (
 	metricRegister   map[string]metric
 	currentTimestamp metric
 	cached           bool
+	cache            []byte
 	lastRequest      time.Time
 )
 
@@ -81,11 +82,16 @@ func handleMetrics(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func writeMetricsResponse(w http.ResponseWriter) {
-	_, _ = w.Write([]byte(sprintDirMetric(currentTimestamp)))
+func getMetricValues() []byte {
+	res := sprintDirMetric(currentTimestamp)
 	for _, value := range metricRegister {
-		_, _ = w.Write([]byte(sprintDirMetric(value)))
+		res += sprintDirMetric(value)
 	}
+	return []byte(res)
+}
+
+func writeMetricsResponse(w http.ResponseWriter) {
+	_, _ = w.Write(cache)
 }
 
 func updateMetrics() {
@@ -137,7 +143,9 @@ func updateMetrics() {
 		metricValues: map[string]metricValue{"ts": {value: time.Now().Unix()}},
 	}
 
+	cache = getMetricValues()
 	cached = true
+	lastRequest = time.Now()
 }
 
 // this should be replaced with one more generic generator.
