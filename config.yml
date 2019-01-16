@@ -1,4 +1,5 @@
 serviceport: "9999"
+cachetime: 1
 directories:
   - path: \tmp
     name: \tmp

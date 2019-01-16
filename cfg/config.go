@@ -13,6 +13,7 @@ type Dir struct {
 }
 type Config struct {
 	ServicePort string
+	CacheTime   int
 	Directories []Dir
 }
 
@@ -20,6 +21,7 @@ func GetConfig(fileName string) Config {
 	Cfg := Config{}
 	// set default values
 	Cfg.ServicePort = "9999"
+	Cfg.CacheTime = 5
 
 	var cfgFile = "config.yml"
 	if fileName != "" {

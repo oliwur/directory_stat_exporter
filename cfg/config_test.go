@@ -24,6 +24,12 @@ func TestGetConfig(t *testing.T) {
 			t.Errorf("the configuration returned must define the default service port 9999")
 		}
 
+		if config.CacheTime != 5 {
+			t.Fail()
+			t.Errorf("the configuration returned must return the default cachetime 5")
+			t.Errorf(" it returned %v instead.", config.CacheTime)
+		}
+
 		_ = os.Chdir(cwd)
 	})
 
@@ -63,6 +69,7 @@ func TestGetConfig(t *testing.T) {
 
 		configSrc := Config{
 			ServicePort: "9994",
+			CacheTime:   7,
 		}
 
 		out, _ := yaml.Marshal(configSrc)
@@ -76,6 +83,12 @@ func TestGetConfig(t *testing.T) {
 			t.Fail()
 			t.Errorf("the configuration returned must return the service port 9997, defined in config.yml")
 			t.Errorf(" it returned %v instead.", config.ServicePort)
+		}
+
+		if config.CacheTime != configSrc.CacheTime {
+			t.Fail()
+			t.Errorf("the configuration returned must return the cache time %v, defined in config.yml", configSrc.CacheTime)
+			t.Errorf(" it returned %v instead.", config.CacheTime)
 		}
 
 		_ = os.Chdir(cwd)
