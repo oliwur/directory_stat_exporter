@@ -9,8 +9,19 @@ import (
 	"time"
 )
 
-// globals
-var config cfg.Config
+type metricValue struct {
+	labels    map[string]string
+	name      string
+	value     int64
+	recursive bool
+}
+
+type metric struct {
+	metricName   string
+	metricHelp   string
+	metricType   string
+	metricValues map[string]metricValue
+}
 
 const (
 	namespace              = "dirstat"
@@ -19,21 +30,13 @@ const (
 	metricCurrentTimestamp = "current_timestamp"
 )
 
-type metricValue struct {
-	labels    map[string]string
-	name      string
-	value     int64
-	recursive bool
-}
-type metric struct {
-	metricName   string
-	metricHelp   string
-	metricType   string
-	metricValues map[string]metricValue
-}
-
-var metricRegister map[string]metric
-var currentTimestamp metric
+var (
+	config           cfg.Config
+	metricRegister   map[string]metric
+	currentTimestamp metric
+	cached           bool
+	lastRequest      time.Time
+)
 
 func main() {
 	config = cfg.GetConfig("")
@@ -53,13 +56,39 @@ func main() {
 		metricValues: make(map[string]metricValue),
 	}
 
+	lastRequest = time.Unix(0, 0)
+	cached = false
+
 	http.HandleFunc("/metrics", handleMetrics)
 	if err := http.ListenAndServe(":"+config.ServicePort, nil); err != nil {
 		panic(err)
 	}
 }
 
-func handleMetrics(w http.ResponseWriter, r *http.Request) {
+func handleMetrics(w http.ResponseWriter, _ *http.Request) {
+	if lastRequest.Add(time.Minute*time.Duration(config.CacheTime)).Unix() < time.Now().Unix() {
+		// update the cache
+		if cached {
+			writeMetricsResponse(w)
+			go updateMetrics()
+		} else {
+			updateMetrics()
+			writeMetricsResponse(w)
+		}
+	} else {
+		// respond with the cache.
+		writeMetricsResponse(w)
+	}
+}
+
+func writeMetricsResponse(w http.ResponseWriter) {
+	_, _ = w.Write([]byte(sprintDirMetric(currentTimestamp)))
+	for _, value := range metricRegister {
+		_, _ = w.Write([]byte(sprintDirMetric(value)))
+	}
+}
+
+func updateMetrics() {
 	for _, dir := range config.Directories {
 		if dir.Recursive {
 			metricRegister[metricFilesInDir].metricValues[dir.Path] = metricValue{
@@ -101,19 +130,14 @@ func handleMetrics(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 	currentTimestamp = metric{
 		metricName:   metricCurrentTimestamp,
 		metricHelp:   "the current timestamp in unix time.",
 		metricType:   "gauge",
 		metricValues: map[string]metricValue{"ts": {value: time.Now().Unix()}},
 	}
-	//_, _ = w.Write([]byte(sprintCurrentTimestamp(currentTimestamp)))
-	_, _ = w.Write([]byte(sprintDirMetric(currentTimestamp)))
 
-	for _, value := range metricRegister {
-		_, _ = w.Write([]byte(sprintDirMetric(value)))
-	}
+	cached = true
 }
 
 // this should be replaced with one more generic generator.
