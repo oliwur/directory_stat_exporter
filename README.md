@@ -23,7 +23,6 @@ the purpose of this exporter is to provide metrics so prometheus can generate an
 - better error handling
   - it should be fault tolerant and rather give useful metrics if an error occurs
 - make information gathering concurrent, so more directories can be handled in the same time
-- make config passable as a parameter
 - add the disk usage of the current directory as a metric
   - think of usefulness first. do we really need this? -> so far: no.
 - add performance measurements:
@@ -43,7 +42,15 @@ the purpose of this exporter is to provide metrics so prometheus can generate an
 ## configuration
 ### service port
 `serviceport: "9999"`
+
 this does not really need more explanation
+
+### cache time
+`cachetime: 5`
+
+time of interval in minutes. must be an integer value.
+
+this is the time interval which is used to poll the updates from the directories. it does not make sense to me to poll the directories every 15 seconds. if it is set to `0` then caching is disabled.
 
 ### directories
 ```
