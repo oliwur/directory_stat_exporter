@@ -20,7 +20,7 @@ func getFileCountInDirRecursively(dir string) int {
 	}
 	count := 0
 	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
+		if info != nil && !info.IsDir() {
 			count++
 		}
 		return nil

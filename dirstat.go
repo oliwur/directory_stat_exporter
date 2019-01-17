@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/codestoke/directory_stat_exporter/cfg"
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -34,13 +36,17 @@ var (
 	config           cfg.Config
 	metricRegister   map[string]metric
 	currentTimestamp metric
-	cached           bool
 	cache            []byte
 	lastRequest      time.Time
+	cacheLock        sync.Mutex
 )
 
 func main() {
-	config = cfg.GetConfig("")
+	var configFile string
+	flag.StringVar(&configFile, "config.file", "config.yml", "provide a custom config file")
+	flag.Parse()
+
+	config = cfg.GetConfig(configFile)
 
 	metricRegister = make(map[string]metric)
 
@@ -53,12 +59,12 @@ func main() {
 	metricRegister[metricOldestFileTime] = metric{
 		metricName:   metricOldestFileTime,
 		metricType:   "gauge",
-		metricHelp:   "displays the timestamp in unix time of the oldes file",
+		metricHelp:   "displays the timestamp in unix time of the oldest file",
 		metricValues: make(map[string]metricValue),
 	}
 
 	lastRequest = time.Unix(0, 0)
-	cached = false
+	cache = []byte("# dirstat")
 
 	http.HandleFunc("/metrics", handleMetrics)
 	if err := http.ListenAndServe(":"+config.ServicePort, nil); err != nil {
@@ -69,12 +75,9 @@ func main() {
 func handleMetrics(w http.ResponseWriter, _ *http.Request) {
 	if lastRequest.Add(time.Minute*time.Duration(config.CacheTime)).Unix() < time.Now().Unix() {
 		// update the cache
-		if cached {
+		{
 			writeMetricsResponse(w)
 			go updateMetrics()
-		} else {
-			updateMetrics()
-			writeMetricsResponse(w)
 		}
 	} else {
 		// respond with the cache.
@@ -95,6 +98,8 @@ func writeMetricsResponse(w http.ResponseWriter) {
 }
 
 func updateMetrics() {
+	cacheLock.Lock()
+
 	for _, dir := range config.Directories {
 		if dir.Recursive {
 			metricRegister[metricFilesInDir].metricValues[dir.Path] = metricValue{
@@ -144,8 +149,9 @@ func updateMetrics() {
 	}
 
 	cache = getMetricValues()
-	cached = true
 	lastRequest = time.Now()
+
+	cacheLock.Unlock()
 }
 
 // this should be replaced with one more generic generator.
