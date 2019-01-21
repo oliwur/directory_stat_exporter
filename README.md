@@ -29,6 +29,7 @@ the purpose of this exporter is to provide metrics so prometheus can generate an
   - how fast is the gathering
   - where are the limits on local drives
   - what are the limits on remote directories 
+- work out how to handle dependencies propperly.
 
 ## notes to self
 - *important* stack items correctly (types and help text must only appear once in a metric export / per request)
@@ -55,8 +56,8 @@ this is the time interval which is used to poll the updates from the directories
 ### directories
 ```
 directories:
-     - path: \tmp
-       name: "tmp_dir"
+     - name: "tmp"
+       path: /tmp
        recursive: true
 ```
 |key|value|
@@ -67,6 +68,7 @@ directories:
 
 ## usage
 in your GOPATH type
+`go get gopkg.in/yaml.v2`
 
 `go get github.com/codestoke/directory_stat_exporter`
 
