@@ -80,6 +80,17 @@ you can always download the source from a release, unpack it in your GOPATH and 
 
 `go build`
 
+## TLS and basic authentication
+
+directory_stat exporter supports TLS and basic authentication. This enables better
+control of the various HTTP endpoints.
+
+To use TLS and/or basic authentication, you need to pass a configuration file
+using the `--web.config.file` parameter. The format of the file is described
+[in the exporter-toolkit repository](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
+
+
+
 have fun!
 
 cheers, Oli
