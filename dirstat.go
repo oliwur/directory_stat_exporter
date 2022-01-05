@@ -3,12 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/codestoke/directory_stat_exporter/cfg"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/codestoke/directory_stat_exporter/cfg"
+	"github.com/prometheus/common/promlog"
+	"github.com/prometheus/exporter-toolkit/web"
 )
 
 type metricValue struct {
@@ -44,6 +49,9 @@ var (
 func main() {
 	var configFile string
 	flag.StringVar(&configFile, "config.file", "config.yml", "provide a custom config file")
+	var (
+		tlsConfigFile = flag.String("web.config", "", "Path to config yaml file that can enable TLS or authentication.")
+	)
 	flag.Parse()
 
 	config = cfg.GetConfig(configFile)
@@ -65,10 +73,15 @@ func main() {
 
 	lastRequest = time.Unix(0, 0)
 	cache = []byte("# dirstat")
+	promlogConfig := &promlog.Config{}
+	logger := promlog.New(promlogConfig)
 
 	http.HandleFunc("/metrics", handleMetrics)
-	if err := http.ListenAndServe(":"+config.ServicePort, nil); err != nil {
-		panic(err)
+
+	server := &http.Server{Addr: ":" + config.ServicePort}
+	if err := web.ListenAndServe(server, *tlsConfigFile, logger); err != nil {
+		log.Fatalf("Failed to start the server: %v", err)
+		os.Exit(1)
 	}
 }
 
